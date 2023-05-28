@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Price-to-PlainEnglish</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #F9F9F9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            padding: 20px 0;
+        }
+
+        #toggle-buttons {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .toggle-button {
+            cursor: pointer;
+            padding: 10px 20px;
+            background-color: #eee;
+            border: none;
+            color: #444;
+            margin: 0 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-button.selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #market-table {
+            max-width: 800px;
+            margin: 20px auto;
+            width: 90%;
+        }
+
+        #market-table th, #market-table td {
+            padding: 20px;
+            text-align: center;
+            color: #444;
+        }
+
+        #market-table th {
+            background-color: #eee;
+            color: #444;
+        }
+
+        @media (max-width: 600px) {
+            .toggle-button {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            #market-table th, #market-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+  <h1>Price-to-PlainEnglish</h1>
+
+  <div id="toggle-buttons">
+        <button class="toggle-button selected" data-value="w/w">W/W</button>
+        <button class="toggle-button" data-value="m/m">M/M</button>
+        <button class="toggle-button" data-value="y/y">Y/Y</button>
+  </div>
+
+  <table id="market-table">
+        <thead>
+            <tr>
+                <th>Market</th>
+                <th>Lvl</th>
+                <th>%∆</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row['Market'] }}</td>
+                <td>{{ row['Lvl'] }}</td>
+                <td>{{ row['%∆'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+
+      document.querySelectorAll('.toggle-button').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+              document.querySelectorAll('.toggle-button').forEach((btn) => {
+                  btn.classList.remove('selected');
+              });
+              e.target.classList.add('selected');
+              // Documented the selected option and send POST request
+              var option = e.target.dataset.value;
+
+              fetch("/", {
+                  method: "POST",
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({option: option}),
+              })
+              .then(response => response.json())
+              .then(data => {
+                  let tableBody = document.querySelector("#market-table tbody");
+                  tableBody.innerHTML = ""; // Clear the table body
+                  data.rows.forEach(row => {
+                      let tr = document.createElement("tr");
+                      let marketCell = document.createElement("td");
+                      let lvlCell = document.createElement("td");
+                      let changeCell = document.createElement("td");
+                      marketCell.textContent = row['Market'];
+                      lvlCell.textContent = row['Lvl'];
+                      changeCell.textContent = row['%∆'];
+                      tr.append(marketCell, lvlCell, changeCell);
+                      tableBody.append(tr);
+                  });
+              });
+          });
+      });
+
+  </script>
+
+</body>
+</html>
